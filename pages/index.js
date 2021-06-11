@@ -1,65 +1,97 @@
+import { useState } from 'react'
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
 
 export default function Home() {
+  const [mailerState, setMailerState] = useState({
+    name: '',
+    email: '',
+    message: '',
+  })
+
+  const handleStateChange = (e) => {
+    setMailerState((prevState) => ({
+      ...prevState,
+      [e.target.name]: e.target.value,
+    }))
+  }
+
+  const submitEmail = (e) => {
+    e.preventDefault()
+    console.log('Sending')
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json, text/plain, */*',
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({ mailerState }),
+    })
+      .then((res) => res.json())
+      .then(async (res) => {
+        const resData = await res
+        console.log(resData)
+        if (resData.status === 'success') {
+          alert('Message Sent')
+        } else if (resData.status === 'fail') {
+          alert('Message failed to send')
+        }
+      })
+      .then(() => {
+        setMailerState({
+          email: '',
+          name: '',
+          message: '',
+        })
+      })
+  }
+
   return (
-    <div className={styles.container}>
+    <main>
       <Head>
-        <title>Create Next App</title>
+        <title>Nodemailer Trial</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+      <form
+        onSubmit={submitEmail}
+        style={{
+          display: 'flex',
+          height: '100vh',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <fieldset
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            width: '50%',
+          }}
         >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
+          <legend>React NodeMailer Contact Form</legend>
+          <input
+            placeholder="Name"
+            onChange={handleStateChange}
+            name="name"
+            value={mailerState.name}
+          />
+          <input
+            placeholder="Email"
+            onChange={handleStateChange}
+            name="email"
+            value={mailerState.email}
+          />
+          <textarea
+            style={{ minHeight: '200px' }}
+            placeholder="Message"
+            onChange={handleStateChange}
+            name="message"
+            value={mailerState.message}
+          />
+          <button>Send Message</button>
+        </fieldset>
+      </form>
+    </main>
   )
 }
